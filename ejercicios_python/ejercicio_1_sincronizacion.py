@@ -27,24 +27,24 @@ if hasattr(sys.stdout, 'reconfigure'):
 
 X = 199
 
-# TODO PARA EL ESTUDIANTE:
+# PARA EL ESTUDIANTE:
 # 1. Define los mecanismos de sincronización necesarios:
-# sem_A = threading.Semaphore(...)
-# sem_B = threading.Semaphore(...)
+sem_A = threading.Semaphore(1)  # A arranca con permiso
+sem_B = threading.Semaphore(0)  # B espera a que A termine
 
 def proceso_A():
     global X
-    # TODO: Esperar señal si corresponde
+
     X = X + 1
     print(f"[Parte 1] Proceso A: X = {X}")
-    # TODO: Señalizar al siguiente si corresponde
+   
 
 def proceso_B():
     global X
-    # TODO: Esperar señal si corresponde
+    # Se prodria ajusta a // 4 para dar exactamente 50 (200 // 4 = 50)
     X = X // 10
     print(f"[Parte 1] Proceso B: X = {X}")
-    # TODO: Señalizar al siguiente si corresponde
+    
 
 
 # ============================================================================
@@ -59,47 +59,47 @@ def proceso_B():
 
 # TODO PARA EL ESTUDIANTE:
 # Define con qué valor inicial deben comenzar los semáforos para que 'A' arranque primero:
-# sem_sig_A = threading.Semaphore(1)  # ¿1 para arrancar?
-# sem_sig_B = threading.Semaphore(0)
-# sem_sig_C = threading.Semaphore(0)
+sem_sig_A = threading.Semaphore(1)  # Arranca Primero
+sem_sig_B = threading.Semaphore(0)  # Espera turno tras A
+sem_sig_C = threading.Semaphore(0)  # Espera turno tras B
 
 def proceso_emisor_A(rondas=3):
     for i in range(rondas):
-        # sem_sig_A.acquire()
+        sem_sig_A.acquire()
         print(f"[Parte 2] Ronda {i+1} -> 🅰️ Proceso A ejecutando")
         time.sleep(0.1)
-        # sem_sig_B.release()
+        sem_sig_B.release()
 
 def proceso_receptor_B(rondas=3):
     for i in range(rondas):
-        # sem_sig_B.acquire()
+        sem_sig_B.acquire()
         print(f"[Parte 2] Ronda {i+1} -> 🅱️ Proceso B ejecutando")
         time.sleep(0.1)
-        # sem_sig_C.release()
+        sem_sig_C.release()
 
 def proceso_receptor_C(rondas=3):
     for i in range(rondas):
-        # sem_sig_C.acquire()
+        sem_sig_C.acquire()
         print(f"[Parte 2] Ronda {i+1} -> 🅲 Proceso C ejecutando")
         time.sleep(0.1)
-        # sem_sig_A.release()
+        sem_sig_A.release()
 
 
 if __name__ == "__main__":
     print("=" * 60)
     print("EJERCICIO 1 - PARTE 1: Variable Compartida")
     print("=" * 60)
-    # hA = threading.Thread(target=proceso_A)
-    # hB = threading.Thread(target=proceso_B)
-    # hA.start(); hB.start()
-    # hA.join(); hB.join()
+    hA = threading.Thread(target=proceso_A)
+    hB = threading.Thread(target=proceso_B)
+    hA.start(); hB.start()
+    hA.join(); hB.join()
 
     print("\n" + "=" * 60)
     print("EJERCICIO 1 - PARTE 2: Secuencia Estricta ABCABC")
     print("=" * 60)
-    # tA = threading.Thread(target=proceso_emisor_A)
-    # tB = threading.Thread(target=proceso_receptor_B)
-    # tC = threading.Thread(target=proceso_receptor_C)
-    # tA.start(); tB.start(); tC.start()
-    # tA.join(); tB.join(); tC.join()
+    tA = threading.Thread(target=proceso_emisor_A)
+    tB = threading.Thread(target=proceso_receptor_B)
+    tC = threading.Thread(target=proceso_receptor_C)
+    tA.start(); tB.start(); tC.start()
+    tA.join(); tB.join(); tC.join()
     pass

@@ -1,0 +1,14 @@
+{
+  "ej1_seccion_critica": "exclusion_mutua",
+  "ej2_hardware": "test_and_set",
+  "ej3_semaforos_tipo": "contador",
+  "ej4_semaforos_ops": "wait_signal",
+  "ej5_monitores": "encapsulamiento",
+  "ej6_productor_consumidor": "buffer_acotado",
+  "ej7_filosofos": "deadlock",
+  "ej8_python_lock": "threading_lock",
+  "ej10_transacciones": "atomicidad",
+  "ej11_peterson": "turn",
+  "ej12_semaforo_cola": "tres_bloqueados",
+  "ej9_python_condition": "threading_condition"
+}

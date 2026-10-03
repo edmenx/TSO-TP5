@@ -65,14 +65,23 @@ def filosofo(id, rondas=3):
         # =========================================================================
         
         # PISTA DE IMPLEMENTACIÓN ASIMÉTRICA:
+        # =========================================================================
+    # ESTRATEGIA ASIMÉTRICA DE ASIGNACIÓN 
+    # =========================================================================
+    # El filósofo N-1 invierte el orden de solicitud respecto a sus pares.
+    # Esto impide la formación de un ciclo cerrado en el grafo de asignación.
         if id == NUM_FILOSOFOS - 1:
-            primero, segundo = tenedor_der, tenedor_izq
+            primero = tenedor_der
+            segundo = tenedor_izq
         else:
-            primero, segundo = tenedor_izq, tenedor_der
-            
+            primero = tenedor_izq
+            segundo = tenedor_der
+
+    # Adquisición ordenada bajo exclusión mutua
         with tenedores[primero]:
             with tenedores[segundo]:
-                comer(id)
+             comer(id)
+    # Los tenedores se liberan automáticamente en orden inverso al salir de los bloques 'with'
                 
         # =========================================================================
         # FIN TODO

@@ -28,41 +28,78 @@ simulacion_activa = True
 # - Un cerrojo (Lock) o semáforo binario para exclusión mutua en el tarro.
 # - Un semáforo para despertar al oso cuando el tarro esté lleno.
 # - Un semáforo para que las abejas esperen si el tarro está lleno o el oso está comiendo.
-# mutex = threading.Lock()
-# sem_oso = threading.Semaphore(0)
-# sem_tarro_disponible = threading.Semaphore(1)
+mutex = threading.Lock()
+sem_oso = threading.Semaphore(0)
+sem_tarro_disponible = threading.Semaphore(1) # Permiso de llenado para las abejas
 
 def abeja(id_abeja):
-    global tarro_miel, simulacion_activa
-    while simulacion_activa:
-        time.sleep(random.uniform(0.05, 0.2))
-        
-        # TODO: Sincronizar el acceso al tarro de miel:
-        # 1. Esperar a que el tarro esté disponible.
-        # 2. Entrar en exclusión mutua con el tarro.
-        # 3. Depositar una porción de miel (tarro_miel += 1).
-        # 4. Si tarro_miel == M, avisar/despertar al oso dormido.
-        # 5. Si no está lleno, permitir que otras abejas sigan produciendo.
-        pass
+  global tarro_miel, simulacion_activa
+  while simulacion_activa:
+    time.sleep(random.uniform(0.05, 0.2))
+
+    if not simulacion_activa:
+      break
+
+    # 1. Esperar a que el tarro esté disponible y no lleno/bloqueado
+    sem_tarro_disponible.acquire()
+
+    if not simulacion_activa:
+      sem_tarro_disponible.release()
+      break
+
+    # 2. Entrar en exclusión mutua para manipular el recurso compartido
+    with mutex:
+      # 3. Depositar una porción de miel
+      tarro_miel += 1
+      print(f"🐝 Abeja {id_abeja} depositó miel -> Tarro: {tarro_miel}/{M}")
+
+      # 4. Verificar si se completó la capacidad
+      if tarro_miel == M:
+        print(f"🚨 [Tarro Lleno] Abeja {id_abeja} despierta al oso dormido!")
+        sem_oso.release()
+      else:
+        # 5. Si no está lleno, permitir que la siguiente abeja deposite
+        sem_tarro_disponible.release()
 
 def oso(max_tarros=2):
-    global tarro_miel, simulacion_activa
-    tarros_comidos = 0
-    while tarros_comidos < max_tarros:
-        # TODO: Esperar pasivamente (bloqueado) hasta que el tarro alcance M porciones
-        # print("🐻 El oso se despierta y se come toda la miel!")
-        # tarro_miel = 0
-        # print("🐻 El oso vuelve a dormir.")
-        # TODO: Avisar a las abejas que el tarro está vacío y disponible nuevamente.
-        tarros_comidos += 1
-        time.sleep(0.1)
-        
-    simulacion_activa = False
+  global tarro_miel, simulacion_activa
+  tarros_comidos = 0
+  while tarros_comidos < max_tarros:
+    # Espera pasiva (bloqueo) hasta que una abeja señale que el tarro está lleno
+    sem_oso.acquire()
+
+    print("\n🐻 El oso se despierta y se come toda la miel!")
+    with mutex:
+      tarro_miel = 0
+    print("🐻 El oso vuelve a dormir plácidamente.\n")
+
+    tarros_comidos += 1
+    time.sleep(0.1)
+
+    # Avisar que el tarro está vacío y disponible para continuar produciendo
+    sem_tarro_disponible.release()
+
+  simulacion_activa = False
+
 
 if __name__ == "__main__":
-    print("=" * 60)
-    print(" Iniciando Simulación: El Oso y las Abejas (UNJu FI)")
-    print("=" * 60)
-    # TODO: Crear e iniciar los hilos para el oso y las N abejas
-    pass
+  print("=" * 60)
+  print(" Iniciando Simulación: El Oso y las Abejas (UNJu FI)")
+  print("=" * 60)
+
+  hilo_oso = threading.Thread(target=oso, args=(2,))
+  hilos_abejas = [
+      threading.Thread(target=abeja, args=(i + 1,), daemon=True)
+      for i in range(NUM_ABEJAS)
+  ]
+
+  hilo_oso.start()
+  for h in hilos_abejas:
+    h.start()
+
+  hilo_oso.join()
+
+  print("=" * 60)
+  print(" Simulación finalizada exitosamente.")
+  print("=" * 60)
 
